@@ -2,7 +2,6 @@
 
 ######### ** FOR MASTER NODE ** #########
 
-
 sudo apt-get update -y
 sudo apt install docker.io -y
 sudo systemctl enable docker
@@ -38,6 +37,7 @@ kubeadm init --apiserver-advertise-address=$ipaddr --pod-network-cidr=192.168.0.
 cat /tmp/restult.out
 
 # To get join command
+
 tail -2 /tmp/restult.out > /tmp/join_command.sh;
 aws s3 cp /tmp/join_command.sh s3://${s3buckit_name};
 

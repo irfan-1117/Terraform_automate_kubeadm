@@ -10,6 +10,7 @@ resource "aws_instance" "ec2_instance_msr" {
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.ssh_key.key_name # Use the created key pair for SSH access
   associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
   security_groups             = [aws_security_group.k8s_sg.id]
   root_block_device {
     volume_type           = "gp2"
@@ -40,6 +41,7 @@ resource "aws_instance" "ec2_instance_wrk" {
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.ssh_key.key_name # Use the created key pair for SSH access
   associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
   security_groups             = [aws_security_group.k8s_sg.id]
   root_block_device {
     volume_type           = "gp2"
