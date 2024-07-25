@@ -55,7 +55,7 @@ resource "aws_instance" "ec2_instance_wrk" {
 
     region        = var.region
     s3buckit_name = "k8s-${random_string.s3name.result}"
-    worker_number = "${count.index + 1}"
+    worker_number = "${count.index + 2}"
 
   })}")
 
