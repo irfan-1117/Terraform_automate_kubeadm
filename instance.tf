@@ -1,4 +1,8 @@
 # Create Key Pair for SSH access
+locals {
+  S3_BUCKET_NAME = "bucketforcicd117"  # Replace with the actual value or variable
+}
+
 resource "aws_key_pair" "ssh_key" {
   key_name   = "terraform_key"
   public_key = file("./my-aws-keypair.pub") # Change path accordingly
@@ -21,7 +25,9 @@ resource "aws_instance" "ec2_instance_msr" {
     Name = "k8s_msr_1"
   }
 
-  user_data_base64 = base64encode(templatefile("scripts/install_k8s_msr.sh", {}))
+  user_data_base64 = base64encode(templatefile("scripts/install_k8s_msr.sh", {
+    S3_BUCKET_NAME = local.S3_BUCKET_NAME
+  }))
 
 }
 
@@ -43,6 +49,8 @@ resource "aws_instance" "ec2_instance_wrk" {
     Name = "k8s_wrk_${count.index + 1}"
   }
 
-  user_data_base64 = base64encode(templatefile("scripts/install_k8s_wrk.sh", {}))
+  user_data_base64 = base64encode(templatefile("scripts/install_k8s_wrk.sh", {
+    S3_BUCKET_NAME = local.S3_BUCKET_NAME
+  }))
 
 } 
