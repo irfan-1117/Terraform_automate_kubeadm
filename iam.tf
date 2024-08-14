@@ -1,44 +1,51 @@
-# Create IAM role
-resource "aws_iam_role" "ec2_role" {
-  name = "ec2_role"
+# Create a combined IAM Role for EC2 with ECR, ECS, S3, EKS, and Lambda permissions
+resource "aws_iam_role" "combined_role" {
+  name = "combined_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Action = "sts:AssumeRole",
         Effect = "Allow",
         Principal = {
           Service = "ec2.amazonaws.com"
-        }
+        },
+        Action = "sts:AssumeRole"
       }
     ]
   })
 }
 
-# Attach a policy to the role
-resource "aws_iam_role_policy" "ec2_policy" {
-  name = "ec2_policy"
-  role = aws_iam_role.ec2_role.id
+# Attach the combined policy to the role
+resource "aws_iam_role_policy" "combined_policy" {
+  name = "combined_policy"
+  role = aws_iam_role.combined_role.id
 
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
+        Effect = "Allow",
         Action = [
+          "ecr:*",
+          "ecs:*",
           "s3:*",
-          "ec2:*"
+          "eks:*",
+          "lambda:*",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
         ],
-        Effect   = "Allow",
         Resource = "*"
       }
     ]
   })
 }
 
-# Create IAM instance profile
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "ec2_profile"
-  role = aws_iam_role.ec2_role.name
+# Attach the role to an instance profile
+resource "aws_iam_instance_profile" "combined_instance_profile" {
+  name = "combined_instance_profile"
+  role = aws_iam_role.combined_role.name
 }
-
