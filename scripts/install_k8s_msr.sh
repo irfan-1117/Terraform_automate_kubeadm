@@ -1,23 +1,16 @@
 #!/bin/bash
 
-######### ** FOR MASTER NODE ** #########
+# Variables
+HOST_PRIVATE_IP=$(hostname -I | awk '{print $1}')
+KUBERNETES_VERSION="1.30"
+POD_NETWORK_CIDR="10.244.0.0/16"
+CALICO_VERSION="v3.28.1"
 
-sudo apt-get update -y
-sudo apt install docker.io -y
-sudo systemctl enable docker
-sudo systemctl start docker
-#sudo systemctl status docker
+# Update and upgrade system packages
+sudo apt-get update -y && sudo apt-get upgrade -y
 
-sudo apt install unzip -y 
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-
-sudo apt-get update -y
-sudo apt-get install -y apt-transport-https ca-certificates curl gpg
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-sudo apt-get update -y
+# Install necessary packages
+sudo apt-get install -y net-tools apt-transport-https ca-certificates curl gpg
 
 # Turn off swap
 swapoff -a
@@ -25,48 +18,86 @@ sudo sed -i '/swap/d' /etc/fstab
 mount -a
 ufw disable
 
-# Installing Kubernetes tools
+# Configure kernel modules for containerd
+cat > /etc/modules-load.d/containerd.conf <<EOF
+overlay
+br_netfilter
+EOF
+
+# Apply sysctl settings for Kubernetes networking
+cat > /etc/sysctl.d/99-kubernetes-cri.conf <<EOF
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+sudo sysctl --system
+
+# Install Docker dependencies
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/keyrings/docker.asc > /dev/null
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add Docker repository
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+# Install containerd
+sudo apt-get install -y containerd.io
+
+# Configure containerd
+mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml > /dev/null
+sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+
+# Restart containerd
+sudo systemctl restart containerd
+#sudo systemctl status containerd
+
+# Configure crictl
+cat > /etc/crictl.yaml <<EOF
+runtime-endpoint: unix:///run/containerd/containerd.sock
+image-endpoint: unix:///run/containerd/containerd.sock
+timeout: 2
+EOF
+
+# Add Kubernetes repository
+sudo apt-get update -y
+# apt-transport-https may be a dummy package; if so, you can skip that package
+#sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee 
+/etc/apt/sources.list.d/kubernetes.list
+
+# # Install Kubernetes components
 sudo apt-get update -y
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
-sudo systemctl enable --now kubelet
 
-
-# Kubernetes cluster init
-kubeadm init --apiserver-advertise-address=$ipaddr --pod-network-cidr=192.168.0.0/16 --apiserver-cert-extra-sans=$pubip > /tmp/restult.out
+# Initialize Kubernetes master node
+sudo kubeadm init --apiserver-advertise-address="$HOST_PRIVATE_IP" --cri-socket=/run/containerd/containerd.sock --pod-network-cidr="$POD_NETWORK_CIDR" > /tmp/restult.out
 cat /tmp/restult.out
 
 # To get join command
-
 tail -2 /tmp/restult.out > /tmp/join_command.sh;
 aws s3 cp /tmp/join_command.sh s3://${s3buckit_name};
 
-#this adds .kube/config for root account, run same for ubuntu user, if you need it
-mkdir -p /root/.kube;
-cp -i /etc/kubernetes/admin.conf /root/.kube/config;
-cp -i /etc/kubernetes/admin.conf /tmp/admin.conf;
-chmod 755 /tmp/admin.conf
+# Set up kubeconfig for the current user
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-#Add kube config to ubuntu user.
-mkdir -p /home/ubuntu/.kube;
-cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config;
-chmod 755 /home/ubuntu/.kube/config
+# Install Calico CNI
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/$CALICO_VERSION/manifests/tigera-operator.yaml
+wget https://raw.githubusercontent.com/projectcalico/calico/$CALICO_VERSION/manifests/custom-resources.yaml
 
-#to copy kube config file to s3
-# aws s3 cp /etc/kubernetes/admin.conf s3://${s3buckit_name}
+# Replace default IP in custom-resources.yaml with POD_NETWORK_CIDR
+sed -i "s|192.168.0.0/16|$POD_NETWORK_CIDR|g" custom-resources.yaml
+kubectl apply -f custom-resources.yaml
 
-export KUBECONFIG=/root/.kube/config
-
-# install helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-bash get_helm.sh
-
-# Setup flannel
-kubectl create --kubeconfig /root/.kube/config ns kube-flannel
-kubectl label --overwrite ns kube-flannel pod-security.kubernetes.io/enforce=privileged
-helm repo add flannel https://flannel-io.github.io/flannel/
-helm install flannel --set podCidr="192.168.0.0/16" --namespace kube-flannel flannel/flannel
-
-
-
+# Upload kubeadm output token to AWS S3
+# (Assumes you have AWS CLI configured)
+#kubeadm token create --print-join-command > kubeadm_join_command.sh
+#aws s3 cp kubeadm_join_command.sh s3://$S3_BUCKET_NAME/
