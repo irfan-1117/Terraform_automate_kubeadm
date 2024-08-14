@@ -74,6 +74,6 @@ sudo apt-mark hold kubelet kubeadm kubectl
 sleep 1m
 
 # Getting join file from s3 bucket
-aws s3 cp s3://${s3buckit_name}/join_command.sh /tmp/.
+aws s3 cp s3://${S3_BUCKET_NAME}/join_command.sh /tmp/.
 chmod +x /tmp/join_command.sh
 bash /tmp/join_command.sh

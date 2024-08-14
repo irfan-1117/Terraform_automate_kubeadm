@@ -5,6 +5,7 @@ HOST_PRIVATE_IP=$(hostname -I | awk '{print $1}')
 KUBERNETES_VERSION="1.30"
 POD_NETWORK_CIDR="10.244.0.0/16"
 CALICO_VERSION="v3.28.1"
+S3_BUCKET_NAME="bucketforcicd117"
 
 # Update and upgrade system packages
 sudo apt-get update -y && sudo apt-get upgrade -y
@@ -84,7 +85,7 @@ cat /tmp/restult.out
 
 # To get join command
 tail -2 /tmp/restult.out > /tmp/join_command.sh;
-aws s3 cp /tmp/join_command.sh s3://${s3buckit_name};
+aws s3 cp /tmp/join_command.sh s3://${S3_BUCKET_NAME};
 
 # Set up kubeconfig for the current user
 mkdir -p $HOME/.kube
