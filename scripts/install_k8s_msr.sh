@@ -87,10 +87,16 @@ cat /tmp/restult.out
 tail -2 /tmp/restult.out > /tmp/join_command.sh;
 aws s3 cp /tmp/join_command.sh s3://${S3_BUCKET_NAME};
 
-# Set up kubeconfig for the current user
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+#this adds .kube/config for root account, run same for ubuntu user, if you need it
+mkdir -p /root/.kube;
+cp -i /etc/kubernetes/admin.conf /root/.kube/config;
+cp -i /etc/kubernetes/admin.conf /tmp/admin.conf;
+chmod 755 /tmp/admin.conf
+
+#Add kube config to ubuntu user.
+mkdir -p /home/ubuntu/.kube;
+cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config;
+chmod 755 /home/ubuntu/.kube/config
 
 # Install Calico CNI
 kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/$CALICO_VERSION/manifests/tigera-operator.yaml
