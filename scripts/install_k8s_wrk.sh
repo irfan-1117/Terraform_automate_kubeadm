@@ -3,6 +3,13 @@
 # Update and upgrade system packages
 sudo apt-get update -y && sudo apt-get upgrade -y
 
+# install aws-cli for s3 operation
+sudo apt install unzip -y
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+sudo rm -rf awscliv2.zip aws  # Clean up
+
 # Install necessary packages
 sudo apt-get install -y net-tools apt-transport-https ca-certificates curl gpg
 

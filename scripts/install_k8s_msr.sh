@@ -9,6 +9,13 @@ S3_BUCKET_NAME="bucketforcicd117"
 # Update and upgrade system packages
 sudo apt-get update -y && sudo apt-get upgrade -y
 
+# install aws-cli for s3 operation
+sudo apt install unzip -y
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+sudo rm -rf awscliv2.zip aws  # Clean up
+
 # Install necessary packages
 sudo apt-get install -y net-tools apt-transport-https ca-certificates curl gpg
 
@@ -93,16 +100,34 @@ mkdir -p /home/ubuntu/.kube;
 cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config;
 chmod 755 /home/ubuntu/.kube/config
 
+export KUBECONFIG=/root/.kube/config
+
+# install helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+bash get_helm.sh
+
 # Install Calico CNI
 kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/tigera-operator.yaml
-wget https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/custom-resources.yaml 
+wget https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/custom-resources.yaml
 
 # Replace default IP in custom-resources.yaml with POD_NETWORK_CIDR
 sed -i "s|192.168.0.0/16|$POD_NETWORK_CIDR|g" custom-resources.yaml
 kubectl apply -f custom-resources.yaml
 
 # To get join command
-tail -2 /tmp/result.out > /tmp/join_command.sh;
+sudo tail -2 /tmp/result.out > /tmp/join_command.sh;
 aws s3 cp /tmp/join_command.sh s3://${S3_BUCKET_NAME};
 
+sleep 5
 
+# Apply kubectl Cheat Sheet Autocomplete
+source <(kubectl completion bash) # set up autocomplete in bash into the current shell, bash-completion package should be installed first.
+echo "source <(kubectl completion bash)" >> /home/ubuntu/.bashrc # add autocomplete permanently to your bash shell.
+echo "source <(kubectl completion bash)" >> /root/.bashrc # add autocomplete permanently to your bash shell.
+alias k=kubectl
+complete -o default -F __start_kubectl k
+echo "alias k=kubectl" >> /home/ubuntu/.bashrc
+echo "alias k=kubectl" >> /root/.bashrc
+echo "complete -o default -F __start_kubectl k" >> /home/ubuntu/.bashrc
+echo "complete -o default -F __start_kubectl k" >> /root/.bashrc
