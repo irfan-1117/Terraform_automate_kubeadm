@@ -4,7 +4,6 @@
 HOST_PRIVATE_IP=$(hostname -I | awk '{print $1}')
 KUBERNETES_VERSION="1.30"
 POD_NETWORK_CIDR="10.244.0.0/16"
-CALICO_VERSION="v3.28.1"
 S3_BUCKET_NAME="bucketforcicd117"
 
 # Update and upgrade system packages
@@ -80,12 +79,8 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
 # Initialize Kubernetes master node
-sudo kubeadm init --apiserver-advertise-address="$HOST_PRIVATE_IP" --cri-socket=/run/containerd/containerd.sock --pod-network-cidr="$POD_NETWORK_CIDR" > /tmp/restult.out
-cat /tmp/restult.out
-
-# To get join command
-tail -2 /tmp/restult.out > /tmp/join_command.sh;
-aws s3 cp /tmp/join_command.sh s3://${S3_BUCKET_NAME};
+sudo kubeadm init --apiserver-advertise-address="$HOST_PRIVATE_IP" --cri-socket=/run/containerd/containerd.sock --pod-network-cidr="$POD_NETWORK_CIDR" > /tmp/result.out
+#cat /tmp/restult.out
 
 #this adds .kube/config for root account, run same for ubuntu user, if you need it
 mkdir -p /root/.kube;
@@ -99,11 +94,15 @@ cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config;
 chmod 755 /home/ubuntu/.kube/config
 
 # Install Calico CNI
-kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/$CALICO_VERSION/manifests/tigera-operator.yaml
-wget https://raw.githubusercontent.com/projectcalico/calico/$CALICO_VERSION/manifests/custom-resources.yaml
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/tigera-operator.yaml
+wget https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/custom-resources.yaml 
 
 # Replace default IP in custom-resources.yaml with POD_NETWORK_CIDR
 sed -i "s|192.168.0.0/16|$POD_NETWORK_CIDR|g" custom-resources.yaml
 kubectl apply -f custom-resources.yaml
+
+# To get join command
+tail -2 /tmp/result.out > /tmp/join_command.sh;
+aws s3 cp /tmp/join_command.sh s3://${S3_BUCKET_NAME};
 
 
