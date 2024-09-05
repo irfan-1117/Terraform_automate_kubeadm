@@ -1,4 +1,4 @@
-name: Creating and Destroying a Kubeadm Kubernetes Cluster Setup in Amazon EC2
+name: Creating and Destroying Kubernetes Cluster Setup in Amazon EC2
 
 on:
   push:
