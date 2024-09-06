@@ -78,7 +78,7 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
 # to insure the join command start when the installion of master node is done.
-sleep 1m
+sleep 2m
 
 # Getting join file from s3 bucket
 aws s3 cp s3://${S3_BUCKET_NAME}/join_command.sh /tmp/.
