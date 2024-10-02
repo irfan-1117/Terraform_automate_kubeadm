@@ -44,11 +44,6 @@ jobs:
       with:
         terraform_version: 1.3.0 # Adjust version as needed
 
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
-
     - name: Initialize Terraform
       run: terraform init -backend-config="bucket=bucketforcicd117" -backend-config="key=dev/terraform.tfstate"
 
