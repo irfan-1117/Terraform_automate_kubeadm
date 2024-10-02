@@ -18,7 +18,7 @@ resource "aws_instance" "ec2_instance_msr" {
   security_groups             = [aws_security_group.k8s_sg.id]
   root_block_device {
     volume_type           = "gp2"
-    volume_size           = "16"
+    volume_size           = "20"
     delete_on_termination = true
   }
   tags = {
@@ -42,7 +42,7 @@ resource "aws_instance" "ec2_instance_wrk" {
   security_groups             = [aws_security_group.k8s_sg.id]
   root_block_device {
     volume_type           = "gp2"
-    volume_size           = "16"
+    volume_size           = "20"
     delete_on_termination = true
   }
   tags = {
