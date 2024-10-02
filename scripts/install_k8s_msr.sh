@@ -2,7 +2,7 @@
 
 # Variables
 HOST_PRIVATE_IP=$(hostname -I | awk '{print $1}')
-KUBERNETES_VERSION="1.30"
+KUBERNETES_VERSION="1.31"
 POD_NETWORK_CIDR="10.244.0.0/16"
 S3_BUCKET_NAME="bucketforcicd117"
 
