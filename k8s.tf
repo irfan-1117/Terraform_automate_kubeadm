@@ -1,6 +1,6 @@
 # Create Key Pair for SSH access
 locals {
-  S3_BUCKET_NAME = "bucketforcicd117"  # Replace with the actual value or variable
+  S3_BUCKET_NAME = "bucketforcicd117" # Replace with the actual value or variable
 }
 
 resource "aws_key_pair" "ssh_key" {
@@ -17,8 +17,8 @@ resource "aws_instance" "ec2_instance_msr" {
   iam_instance_profile        = aws_iam_instance_profile.combined_instance_profile.name
   security_groups             = [aws_security_group.k8s_sg.id]
   root_block_device {
-    volume_type           = "gp2"
-    volume_size           = "20"
+    volume_type           = "gp3"
+    volume_size           = "25"
     delete_on_termination = true
   }
   tags = {
@@ -41,8 +41,8 @@ resource "aws_instance" "ec2_instance_wrk" {
   iam_instance_profile        = aws_iam_instance_profile.combined_instance_profile.name
   security_groups             = [aws_security_group.k8s_sg.id]
   root_block_device {
-    volume_type           = "gp2"
-    volume_size           = "20"
+    volume_type           = "gp3"
+    volume_size           = "25"
     delete_on_termination = true
   }
   tags = {
