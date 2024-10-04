@@ -14,5 +14,5 @@ variable "ami_id" {
 }
 
 variable "instance_type" {
-  default = "t3.medium" #the best type to start k8s with it,
+  default = "t2.medium" #the best type to start k8s with it,
 }
