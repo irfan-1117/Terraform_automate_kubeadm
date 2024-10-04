@@ -1,6 +1,6 @@
 variable "number_of_worker" {
   description = "number of worker instances to be join on cluster."
-  default     = 2
+  default     = 1
 }
 
 variable "region" {
