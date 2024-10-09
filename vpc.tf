@@ -10,7 +10,7 @@ resource "aws_vpc" "some_custom_vpc" {
 
 resource "random_shuffle" "az" {
   input        = ["${var.region}a", "${var.region}b", "${var.region}c", "${var.region}d", "${var.region}e"]
-  result_count = 1
+  result_count = 2
 }
 
 resource "aws_subnet" "some_public_subnet" {
