@@ -40,6 +40,11 @@ resource "aws_security_group" "k8s_sg" {
         to_port   = 9090
         protocol  = "tcp"
       }
+      "NodeExporter" = {
+        from_port = 9100
+        to_port   = 9100
+        protocol  = "tcp"
+      }
       "grafana" = {
         from_port = 3000
         to_port   = 3000

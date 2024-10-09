@@ -1,6 +1,6 @@
 variable "number_of_worker" {
   description = "number of worker instances to be join on cluster."
-  default     = 1
+  default     = 2
 }
 
 variable "region" {
@@ -14,5 +14,5 @@ variable "ami_id" {
 }
 
 variable "instance_type" {
-  default = "t2.medium" #the best type to start k8s with it,
+  default = "t3.medium" #the best type to start k8s with it,
 }
