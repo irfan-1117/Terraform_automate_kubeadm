@@ -70,7 +70,7 @@ resource "aws_security_group" "k8s_sg" {
         to_port   = 8125
         protocol  = "udp"
       }
-      "ssh" = {  # Adding SSH configuration
+      "ssh" = {  # SSH with configurable CIDR
         from_port = 22
         to_port   = 22
         protocol  = "tcp"
@@ -91,7 +91,8 @@ resource "aws_security_group" "k8s_sg" {
       from_port   = ingress.value.from_port
       to_port     = ingress.value.to_port
       protocol    = ingress.value.protocol
-      cidr_blocks = ["0.0.0.0/0"]  # Adjust as necessary for security
+      # Use allowed_ssh_cidr for SSH, allow all for other Kubernetes ports
+      cidr_blocks = ingress.key == "ssh" ? var.allowed_ssh_cidr : ["0.0.0.0/0"]
     }
   }
 
