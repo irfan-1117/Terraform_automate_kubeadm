@@ -38,5 +38,5 @@ variable "public_key_content" {
 variable "allowed_ssh_cidr" {
   description = "CIDR blocks allowed for SSH access (restrict to your IP for security)"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Change this in production!
+  default     = ["0.0.0.0/0"] # Change this in production!
 }
