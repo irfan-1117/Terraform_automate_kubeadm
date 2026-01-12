@@ -8,6 +8,10 @@ my-aws-keypair*
 *.tfvars
 *.tfvars.json
 
+# Backend configuration (may contain sensitive data)
+backend.hcl
+backend.conf
+
 # Additional Terraform files
 **/.terraform/*
 *.tfstate

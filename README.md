@@ -39,22 +39,34 @@ This Terraform configuration creates:
    nano terraform.tfvars
    ```
 
-4. **Initialize Terraform**
+4. **Configure backend (optional)**
+   ```bash
+   # Option 1: Edit backend.tf directly with your bucket name
+   # Option 2: Use backend config file
+   cp backend.hcl.example backend.hcl
+   nano backend.hcl
+   # Then initialize with: terraform init -backend-config=backend.hcl
+   
+   # Option 3: Use command line
+   terraform init -backend-config="bucket=your-bucket-name"
+   ```
+
+5. **Initialize Terraform**
    ```bash
    terraform init
    ```
 
-5. **Review the plan**
+6. **Review the plan**
    ```bash
    terraform plan
    ```
 
-6. **Apply configuration**
+7. **Apply configuration**
    ```bash
    terraform apply
    ```
 
-7. **Access your cluster**
+8. **Access your cluster**
    ```bash
    # SSH to master node
    ssh -i ~/.ssh/k8s-cluster-key ubuntu@<master-public-ip>
