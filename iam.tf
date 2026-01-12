@@ -1,3 +1,6 @@
+# Data source for current AWS account
+data "aws_caller_identity" "current" {}
+
 # Create a combined IAM Role for EC2 with ECR, ECS, S3, EKS, and Lambda permissions
 resource "aws_iam_role" "combined_role" {
   name = "combined_role"
@@ -16,7 +19,7 @@ resource "aws_iam_role" "combined_role" {
   })
 }
 
-# Attach the combined policy to the role
+# Attach the combined policy to the role with least privilege permissions
 resource "aws_iam_role_policy" "combined_policy" {
   name = "combined_policy"
   role = aws_iam_role.combined_role.id
@@ -27,18 +30,33 @@ resource "aws_iam_role_policy" "combined_policy" {
       {
         Effect = "Allow",
         Action = [
-          "ecr:*",
-          "ecs:*",
-          "s3:*",
-          "eks:*",
-          "lambda:*",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:ListBucket"
+        ],
+        Resource = [
+          "arn:aws:s3:::${var.s3_bucket_name}",
+          "arn:aws:s3:::${var.s3_bucket_name}/*"
+        ]
+      },
+      {
+        Effect = "Allow",
+        Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        Resource = "*"
+        Resource = "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ec2/*"
       }
     ]
   })

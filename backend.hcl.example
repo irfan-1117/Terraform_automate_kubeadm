@@ -1,0 +1,6 @@
+# Backend configuration file example
+# Usage: terraform init -backend-config=backend.hcl
+bucket  = "your-bucket-name-here"
+key     = "dev/terraform.tfstate"
+region  = "us-east-1"
+encrypt = true

@@ -70,17 +70,17 @@ resource "aws_security_group" "k8s_sg" {
         to_port   = 8125
         protocol  = "udp"
       }
-      "ssh" = {  # Adding SSH configuration
+      "ssh" = { # SSH with configurable CIDR
         from_port = 22
         to_port   = 22
         protocol  = "tcp"
       }
-      "kubelet" = {  # Port for Kubelet API
+      "kubelet" = { # Port for Kubelet API
         from_port = 10250
         to_port   = 10250
         protocol  = "tcp"
       }
-      "node_ports" = {  # NodePort range
+      "node_ports" = { # NodePort range
         from_port = 30000
         to_port   = 32767
         protocol  = "tcp"
@@ -88,10 +88,11 @@ resource "aws_security_group" "k8s_sg" {
     }
 
     content {
-      from_port   = ingress.value.from_port
-      to_port     = ingress.value.to_port
-      protocol    = ingress.value.protocol
-      cidr_blocks = ["0.0.0.0/0"]  # Adjust as necessary for security
+      from_port = ingress.value.from_port
+      to_port   = ingress.value.to_port
+      protocol  = ingress.value.protocol
+      # Use allowed_ssh_cidr for SSH, allow all for other Kubernetes ports
+      cidr_blocks = ingress.key == "ssh" ? var.allowed_ssh_cidr : ["0.0.0.0/0"]
     }
   }
 

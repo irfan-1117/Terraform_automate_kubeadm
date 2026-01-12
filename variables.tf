@@ -14,5 +14,30 @@ variable "ami_id" {
 }
 
 variable "instance_type" {
-  default = "t3.medium" #the best type to start k8s with it,
+  description = "EC2 instance type for Kubernetes nodes"
+  default     = "t3.medium" # Recommended instance type for Kubernetes
+}
+
+variable "s3_bucket_name" {
+  description = "S3 bucket name for CI/CD and cluster artifacts"
+  type        = string
+  sensitive   = true
+}
+
+variable "key_name" {
+  description = "Name for AWS key pair"
+  type        = string
+  default     = "k8s-cluster-key"
+}
+
+variable "public_key_content" {
+  description = "Public SSH key content (use ssh-keygen to generate)"
+  type        = string
+  sensitive   = true
+}
+
+variable "allowed_ssh_cidr" {
+  description = "CIDR blocks allowed for SSH access (restrict to your IP for security)"
+  type        = list(string)
+  default     = ["0.0.0.0/0"] # WARNING: Change this in production! Allows SSH from anywhere.
 }

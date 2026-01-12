@@ -1,11 +1,11 @@
 # Create Key Pair for SSH access
 locals {
-  S3_BUCKET_NAME = "bucketforcicd117" # Replace with the actual value or variable
+  S3_BUCKET_NAME = var.s3_bucket_name
 }
 
 resource "aws_key_pair" "ssh_key" {
-  key_name   = "terraform_key"
-  public_key = file("./my-aws-keypair.pub") # Change path accordingly
+  key_name   = var.key_name
+  public_key = var.public_key_content
 }
 
 resource "aws_instance" "ec2_instance_msr" {
